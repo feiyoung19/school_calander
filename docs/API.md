@@ -466,6 +466,99 @@ END:VCALENDAR
 
 ---
 
+### 7. 自然年校历
+
+自然年校历从第一年春节后开始，到第二年春节后结束，支持跨学年展示校历。
+
+#### 7.1 获取自然年信息
+
+```
+GET /api/natural-year/info?year={year}
+```
+
+**请求参数**：
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| year | Integer | 否 | 自然年年份，默认当前年 |
+
+**响应示例**：
+
+```json
+{
+  "year": 2026,
+  "name": "2026自然年",
+  "startDate": "2026-02-28",
+  "endDate": "2027-02-27",
+  "springFestivalCurrent": "2026-02-17",
+  "springFestivalNext": "2027-02-06"
+}
+```
+
+**字段说明**：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| year | Integer | 自然年年份 |
+| name | String | 自然年名称 |
+| startDate | String | 开始日期（春节后11天） |
+| endDate | String | 结束日期（次年春节后10天） |
+| springFestivalCurrent | String | 当年春节日期 |
+| springFestivalNext | String | 次年春节日期 |
+
+#### 7.2 获取自然年校历事件
+
+```
+GET /api/natural-year/events?year={year}
+```
+
+**请求参数**：
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| year | Integer | 否 | 自然年年份，默认当前年 |
+
+**响应示例**：
+
+```json
+[
+  {
+    "id": "event-1",
+    "title": "春季学期开学",
+    "start": "2026-02-28",
+    "end": "2026-02-28",
+    "eventType": "CEREMONY",
+    "color": "#4caf50"
+  },
+  {
+    "id": "holiday-1",
+    "title": "清明节",
+    "start": "2026-04-04",
+    "end": "2026-04-06",
+    "display": "background",
+    "color": "#f44336"
+  }
+]
+```
+
+#### 7.3 导出自然年iCal格式
+
+```
+GET /api/natural-year/ical?year={year}
+```
+
+**请求参数**：
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| year | Integer | 否 | 自然年年份，默认当前年 |
+
+**响应**：
+- Content-Type: `text/calendar; charset=utf-8`
+- 文件名: `natural-year-{year}-calendar.ics`
+
+---
+
 ## 数据模型
 
 ### AcademicYear（学年）
