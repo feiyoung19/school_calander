@@ -1,0 +1,960 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高校校历系统</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/fullcalendar.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .calendar-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .announcement-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .announcement-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .announcement-header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .announcement-icon {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+        }
+
+        .announcement-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .announcement-more-btn {
+            color: #667eea;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .announcement-more-btn:hover {
+            color: #764ba2;
+            text-decoration: none;
+        }
+
+        .announcement-scroll-container {
+            height: 120px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .announcement-scroll-content {
+            position: absolute;
+            width: 100%;
+            animation: scrollUp 15s linear infinite;
+        }
+
+        .announcement-scroll-content:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes scrollUp {
+            0% {
+                top: 0;
+            }
+            100% {
+                top: -100%;
+            }
+        }
+
+        .announcement-item {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .announcement-item:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            transform: translateX(5px);
+        }
+
+        .announcement-item-date {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .announcement-item-content {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .announcement-item-type {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .type-sports {
+            background: #ff9800;
+            color: white;
+        }
+
+        .type-exam {
+            background: #f44336;
+            color: white;
+        }
+
+        .type-ceremony {
+            background: #4caf50;
+            color: white;
+        }
+
+        .type-other {
+            background: #2196f3;
+            color: white;
+        }
+
+        .no-announcements {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+            font-size: 1rem;
+        }
+
+        .announcement-filter-bar {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .announcement-filter-bar .form-select {
+            max-width: 200px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .announcement-list-item {
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .announcement-list-item:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            transform: translateX(5px);
+        }
+
+        .announcement-list-date {
+            font-size: 0.95rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .announcement-list-content {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .announcement-list-title {
+            flex: 1;
+        }
+
+        .announcement-pagination {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            color: #333;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0 1rem;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-panel .row {
+            align-items: center;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-select {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        }
+
+        .view-toggle-bar {
+            margin-bottom: 1.5rem;
+        }
+
+        .view-toggle-btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px !important;
+            transition: all 0.3s ease;
+        }
+
+        .view-toggle-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .view-toggle-btn:not(.active) {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .view-toggle-btn:not(.active):hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .natural-year-info {
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-light {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(240, 147, 251, 0.4);
+        }
+
+        #calendar {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .fc {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.5rem !important;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .fc-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 0.5rem 1rem !important;
+            font-weight: 600 !important;
+        }
+
+        .fc-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .fc-day-today {
+            background-color: rgba(102, 126, 234, 0.1) !important;
+        }
+
+        .fc-daygrid-day-number {
+            font-weight: 600;
+        }
+
+        .fc-event {
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 0.25rem 0.5rem !important;
+            font-weight: 500;
+        }
+
+        .fc-event-title {
+            font-size: 0.85rem;
+        }
+
+        .fc-bg-event {
+            opacity: 0.3 !important;
+        }
+
+        .semester-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
+
+        .semester-badge.fall {
+            background: #ff9800;
+            color: white;
+        }
+
+        .semester-badge.spring {
+            background: #4caf50;
+            color: white;
+        }
+
+        .jump-info {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .jump-info-text {
+            font-weight: 600;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                padding: 1.5rem;
+            }
+
+            .fc-toolbar {
+                flex-direction: column !important;
+                gap: 0.5rem;
+            }
+
+            .jump-info {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .announcement-scroll-container {
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            📅 高校校历管理系统
+        </a>
+        <div>
+            <a href="/dashboard" class="btn btn-light btn-sm me-2">📊 学年学期管理</a>
+            <a href="/admin" class="btn btn-light btn-sm">⚙️ 管理后台</a>
+        </div>
+    </div>
+</nav>
+
+<div class="calendar-container">
+    <div id="jumpInfo" class="jump-info" style="display: none;">
+        <div class="jump-info-text">
+            <span id="jumpInfoText"></span>
+        </div>
+        <div>
+            <a href="/dashboard" class="btn btn-secondary btn-sm">← 返回学年视图</a>
+            <button class="btn btn-primary btn-sm" onclick="clearJumpParams()">查看全部校历</button>
+        </div>
+    </div>
+
+    <div class="announcement-bar">
+        <div class="announcement-header">
+            <div class="announcement-header-left">
+                <span class="announcement-icon">📢</span>
+                <span class="announcement-title">通知公告栏</span>
+            </div>
+            <button class="btn btn-link btn-sm announcement-more-btn" data-bs-toggle="modal" data-bs-target="#announcementModal">
+                查看更多 →
+            </button>
+        </div>
+        <div class="announcement-scroll-container" id="announcementContainer">
+            <div class="no-announcements">正在加载活动信息...</div>
+        </div>
+    </div>
+
+    <!-- 公告列表模态框 -->
+    <div class="modal fade" id="announcementModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📋 全部活动公告</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="announcement-filter-bar">
+                        <select id="announcementTypeFilter" class="form-select form-select-sm" onchange="filterAnnouncements()">
+                            <option value="">全部类型</option>
+                            <option value="SPORTS">🏃 校运会</option>
+                            <option value="EXAM">📝 考试</option>
+                            <option value="CEREMONY">🎓 典礼</option>
+                            <option value="OTHER">📌 其他</option>
+                        </select>
+                    </div>
+                    <div id="announcementListContainer"></div>
+                </div>
+                <div class="modal-footer">
+                    <div class="announcement-pagination" id="announcementPagination"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="control-panel">
+        <div class="view-toggle-bar mb-3">
+            <div class="btn-group w-100" role="group">
+                <button type="button" class="btn btn-primary view-toggle-btn active" id="academicYearBtn" onclick="switchView('academic')">
+                    📚 学年校历
+                </button>
+                <button type="button" class="btn btn-outline-primary view-toggle-btn" id="naturalYearBtn" onclick="switchView('natural')">
+                    🗓️ 自然年校历
+                </button>
+            </div>
+        </div>
+
+        <div id="academicYearControls" class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">📚 选择学年</label>
+                <select id="yearSelect" class="form-select">
+                    <option th:each="y : ${years}" th:value="${y.id}" th:text="${y.name}"></option>
+                </select>
+            </div>
+            <div class="col-md-6 d-flex align-items-end gap-2">
+                <button class="btn btn-primary" onclick="loadEvents()">
+                    🔄 加载校历
+                </button>
+                <button class="btn btn-success" onclick="exportICal()">
+                    📥 导出iCal
+                </button>
+            </div>
+        </div>
+
+        <div id="naturalYearControls" class="row mb-3" style="display: none;">
+            <div class="col-md-6">
+                <label class="form-label">🗓️ 选择自然年</label>
+                <select id="naturalYearSelect" class="form-select">
+                    <option value="2025">2025自然年</option>
+                    <option value="2026">2026自然年</option>
+                    <option value="2027">2027自然年</option>
+                    <option value="2028">2028自然年</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <div class="natural-year-info p-3 rounded" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));">
+                    <div id="naturalYearInfoText" class="text-muted small">
+                        正在加载自然年信息...
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 d-flex align-items-end gap-2 mt-2">
+                <button class="btn btn-primary" onclick="loadNaturalYearEvents()">
+                    🔄 加载自然年校历
+                </button>
+                <button class="btn btn-success" onclick="exportNaturalYearICal()">
+                    📥 导出iCal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="calendar"></div>
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/fullcalendar.min.js"></script>
+<script src="/js/fullcalendar-locales.min.js"></script>
+<script th:inline="javascript">
+    let calendar;
+    let currentYearId;
+    let currentSemesterId = null;
+    let currentTerm = null;
+    let allAnnouncements = [];
+    let filteredAnnouncements = [];
+    let currentPage = 1;
+    const pageSize = 10;
+    let currentViewMode = 'academic';
+    let currentNaturalYear = null;
+
+    function switchView(mode) {
+        currentViewMode = mode;
+        const academicBtn = document.getElementById('academicYearBtn');
+        const naturalBtn = document.getElementById('naturalYearBtn');
+        const academicControls = document.getElementById('academicYearControls');
+        const naturalControls = document.getElementById('naturalYearControls');
+
+        if (mode === 'academic') {
+            academicBtn.classList.add('active');
+            academicBtn.classList.remove('btn-outline-primary');
+            naturalBtn.classList.remove('active');
+            naturalBtn.classList.add('btn-outline-primary');
+            academicControls.style.display = 'flex';
+            naturalControls.style.display = 'none';
+        } else {
+            naturalBtn.classList.add('active');
+            naturalBtn.classList.remove('btn-outline-primary');
+            academicBtn.classList.remove('active');
+            academicBtn.classList.add('btn-outline-primary');
+            academicControls.style.display = 'none';
+            naturalControls.style.display = 'flex';
+            loadNaturalYearInfo();
+        }
+    }
+
+    async function loadNaturalYearInfo() {
+        const yearSelect = document.getElementById('naturalYearSelect');
+        const year = parseInt(yearSelect.value);
+        
+        try {
+            const response = await fetch('/api/natural-year/info?year=' + year);
+            const info = await response.json();
+            
+            currentNaturalYear = year;
+            
+            const infoText = document.getElementById('naturalYearInfoText');
+            infoText.innerHTML = '<strong>' + info.name + '</strong><br>' +
+                '📅 范围：' + info.startDate + ' 至 ' + info.endDate + '<br>' +
+                '🧧 ' + year + '年春节：' + info.springFestivalCurrent + '<br>' +
+                '🧧 ' + (year + 1) + '年春节：' + info.springFestivalNext;
+        } catch (error) {
+            console.error('Error loading natural year info:', error);
+        }
+    }
+
+    async function loadNaturalYearEvents() {
+        const yearSelect = document.getElementById('naturalYearSelect');
+        const year = parseInt(yearSelect.value);
+        
+        try {
+            const response = await fetch('/api/natural-year/events?year=' + year);
+            const events = await response.json();
+            
+            calendar.removeAllEvents();
+            calendar.addEventSource(events);
+            
+            loadAnnouncements(events);
+            
+            const infoResponse = await fetch('/api/natural-year/info?year=' + year);
+            const info = await infoResponse.json();
+            
+            calendar.gotoDate(info.startDate);
+        } catch (error) {
+            console.error('Error loading natural year events:', error);
+        }
+    }
+
+    function exportNaturalYearICal() {
+        const yearSelect = document.getElementById('naturalYearSelect');
+        const year = yearSelect.value;
+        window.location.href = '/api/natural-year/ical?year=' + year;
+    }
+
+    document.getElementById('naturalYearSelect').addEventListener('change', loadNaturalYearInfo);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const yearIdParam = urlParams.get('yearId');
+        const semesterIdParam = urlParams.get('semesterId');
+        const termParam = urlParams.get('term');
+
+        const calendarEl = document.getElementById('calendar');
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'zh-cn',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listMonth'
+            },
+            events: [],
+            height: 'auto',
+            contentHeight: 'auto'
+        });
+        calendar.render();
+
+        const yearSelect = document.getElementById('yearSelect');
+        const currentYearIdFromServer = /*[[${currentYearId}]]*/ null;
+
+        if (yearIdParam) {
+            yearSelect.value = yearIdParam;
+            currentYearId = parseInt(yearIdParam);
+
+            if (semesterIdParam && termParam) {
+                currentSemesterId = semesterIdParam;
+                currentTerm = termParam;
+                showJumpInfo(currentTerm);
+            }
+
+            loadEvents();
+        } else if (currentYearIdFromServer) {
+            yearSelect.value = currentYearIdFromServer;
+            currentYearId = currentYearIdFromServer;
+            loadEvents();
+        } else if (yearSelect.options.length > 0) {
+            currentYearId = yearSelect.value;
+            loadEvents();
+        }
+    });
+
+    function showJumpInfo(term) {
+        const jumpInfo = document.getElementById('jumpInfo');
+        const jumpInfoText = document.getElementById('jumpInfoText');
+        const badge = term === 'FALL' ? '🍂 秋季学期' : '🌸 春季学期';
+        jumpInfoText.innerHTML = '正在查看: <span class="semester-badge ' + term.toLowerCase() + '">' + badge + '</span>';
+        jumpInfo.style.display = 'flex';
+    }
+
+    function clearJumpParams() {
+        const url = new URL(window.location);
+        url.searchParams.delete('yearId');
+        url.searchParams.delete('semesterId');
+        url.searchParams.delete('term');
+        window.location.href = url.pathname;
+    }
+
+    function loadEvents() {
+        currentYearId = document.getElementById('yearSelect').value;
+        fetch('/api/events?yearId=' + currentYearId)
+            .then(res => res.json())
+            .then(events => {
+                calendar.removeAllEvents();
+                calendar.addEventSource(events);
+                loadAnnouncements(events);
+
+                if (currentSemesterId) {
+                    fetch('/admin/semesters?yearId=' + currentYearId)
+                        .then(res => res.json())
+                        .then(semesters => {
+                            const semester = semesters.find(s => s.id == currentSemesterId);
+                            if (semester) {
+                                calendar.gotoDate(semester.startDate);
+                            }
+                        });
+                }
+            });
+    }
+
+    function loadAnnouncements(events) {
+        const container = document.getElementById('announcementContainer');
+        const confirmedEvents = events.filter(e => !e.display || e.display !== 'background');
+
+        allAnnouncements = confirmedEvents.sort((a, b) => {
+            const dateA = new Date(a.start);
+            const dateB = new Date(b.start);
+            return dateA - dateB;
+        });
+        filteredAnnouncements = allAnnouncements;
+
+        if (allAnnouncements.length === 0) {
+            container.innerHTML = '<div class="no-announcements">暂无活动公告</div>';
+            return;
+        }
+
+        let html = '<div class="announcement-scroll-content">';
+        allAnnouncements.forEach(event => {
+            const startDate = formatDateDisplay(event.start);
+            const endDate = event.end ? formatDateDisplay(event.end) : null;
+            const dateDisplay = startDate === endDate || !endDate ? startDate : startDate + ' ~ ' + endDate;
+            
+            const eventType = event.eventType || 'OTHER';
+            const typeClass = 'type-' + eventType.toLowerCase();
+            const typeText = getTypeText(eventType);
+
+            html += '<div class="announcement-item">';
+            html += '<div class="announcement-item-date">📅 ' + dateDisplay + '</div>';
+            html += '<div class="announcement-item-content">';
+            html += event.title;
+            html += '<span class="announcement-item-type ' + typeClass + '">' + typeText + '</span>';
+            html += '</div></div>';
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+
+        const scrollContent = container.querySelector('.announcement-scroll-content');
+        if (scrollContent) {
+            const contentHeight = scrollContent.offsetHeight;
+            const containerHeight = container.offsetHeight;
+            
+            if (contentHeight <= containerHeight) {
+                scrollContent.style.animation = 'none';
+                scrollContent.style.position = 'relative';
+            } else {
+                scrollContent.style.animation = 'scrollUp ' + (contentHeight / 50) + 's linear infinite';
+            }
+        }
+    }
+
+    function filterAnnouncements() {
+        const typeFilter = document.getElementById('announcementTypeFilter').value;
+        currentPage = 1;
+        
+        if (typeFilter) {
+            filteredAnnouncements = allAnnouncements.filter(e => (e.eventType || 'OTHER') === typeFilter);
+        } else {
+            filteredAnnouncements = allAnnouncements;
+        }
+        
+        renderAnnouncementList();
+    }
+
+    function renderAnnouncementList() {
+        const container = document.getElementById('announcementListContainer');
+        
+        if (filteredAnnouncements.length === 0) {
+            container.innerHTML = '<div class="no-announcements">暂无符合条件的活动</div>';
+            document.getElementById('announcementPagination').innerHTML = '';
+            return;
+        }
+
+        const totalPages = Math.ceil(filteredAnnouncements.length / pageSize);
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const pageEvents = filteredAnnouncements.slice(startIndex, endIndex);
+
+        let html = '';
+        pageEvents.forEach(event => {
+            const startDate = formatDateDisplay(event.start);
+            const endDate = event.end ? formatDateDisplay(event.end) : null;
+            const dateDisplay = startDate === endDate || !endDate ? startDate : startDate + ' ~ ' + endDate;
+            
+            const eventType = event.eventType || 'OTHER';
+            const typeClass = 'type-' + eventType.toLowerCase();
+            const typeText = getTypeText(eventType);
+
+            html += '<div class="announcement-list-item">';
+            html += '<div class="announcement-list-date">📅 ' + dateDisplay + '</div>';
+            html += '<div class="announcement-list-content">';
+            html += '<span class="announcement-list-title">' + event.title + '</span>';
+            html += '<span class="announcement-item-type ' + typeClass + '">' + typeText + '</span>';
+            html += '</div></div>';
+        });
+
+        container.innerHTML = html;
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        const paginationContainer = document.getElementById('announcementPagination');
+        
+        if (totalPages <= 1) {
+            paginationContainer.innerHTML = '<span class="pagination-info">共 ' + filteredAnnouncements.length + ' 条</span>';
+            return;
+        }
+
+        let html = '';
+        html += '<button class="pagination-btn" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>上一页</button>';
+        
+        const maxButtons = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+        let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+        
+        if (endPage - startPage < maxButtons - 1) {
+            startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+
+        if (startPage > 1) {
+            html += '<button class="pagination-btn" onclick="goToPage(1)">1</button>';
+            if (startPage > 2) {
+                html += '<span class="pagination-info">...</span>';
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += '<button class="pagination-btn ' + (i === currentPage ? 'active' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                html += '<span class="pagination-info">...</span>';
+            }
+            html += '<button class="pagination-btn" onclick="goToPage(' + totalPages + ')">' + totalPages + '</button>';
+        }
+
+        html += '<button class="pagination-btn" onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>下一页</button>';
+        html += '<span class="pagination-info">共 ' + filteredAnnouncements.length + ' 条 / ' + totalPages + ' 页</span>';
+
+        paginationContainer.innerHTML = html;
+    }
+
+    function goToPage(page) {
+        const totalPages = Math.ceil(filteredAnnouncements.length / pageSize);
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        renderAnnouncementList();
+    }
+
+    document.getElementById('announcementModal').addEventListener('show.bs.modal', function() {
+        currentPage = 1;
+        document.getElementById('announcementTypeFilter').value = '';
+        filteredAnnouncements = allAnnouncements;
+        renderAnnouncementList();
+    });
+
+    function formatDateDisplay(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    function getTypeText(type) {
+        const typeMap = {
+            'SPORTS': '🏃 校运会',
+            'EXAM': '📝 考试',
+            'CEREMONY': '🎓 典礼',
+            'OTHER': '📌 其他'
+        };
+        return typeMap[type] || '📌 活动';
+    }
+
+    function exportICal() {
+        window.location.href = '/api/calendar/ical?yearId=' + currentYearId;
+    }
+</script>
+</body>
+</html>

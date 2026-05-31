@@ -1,0 +1,624 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学年学期管理</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: none;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border: none;
+        }
+
+        .card-header h4 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .year-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .year-tab {
+            padding: 1rem 2rem;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+        }
+
+        .year-tab:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .year-tab.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .year-tab h5 {
+            margin: 0 0 0.5rem 0;
+            font-weight: 700;
+        }
+
+        .year-tab p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .semester-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .semester-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .semester-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .semester-card.fall {
+            border-color: #ff9800;
+        }
+
+        .semester-card.fall:hover {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 87, 34, 0.1));
+            border-color: #ff5722;
+        }
+
+        .semester-card.spring {
+            border-color: #4caf50;
+        }
+
+        .semester-card.spring:hover {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(56, 142, 60, 0.1));
+            border-color: #2e7d32;
+        }
+
+        .semester-card h4 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .semester-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .view-calendar-btn {
+            width: 100%;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .view-calendar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .timeline {
+            margin-top: 2rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.7rem;
+            top: 0.3rem;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+        }
+
+        .timeline-date {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1rem;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .comparison-table tr:hover td {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-light {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-draft {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .badge-published {
+            background: #28a745;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .semester-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .year-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <a class="navbar-brand" href="/">📅 学年学期管理</a>
+        <div>
+            <a href="/" class="btn btn-light btn-sm me-2">📅 校历视图</a>
+            <a href="/admin" class="btn btn-light btn-sm">⚙️ 管理后台</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h4>📚 学年学期总览</h4>
+        </div>
+        <div class="card-body">
+            <div id="yearsContainer" class="year-tabs"></div>
+            <div id="semesterDetails"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h4>📊 学年统计对比</h4>
+        </div>
+        <div class="card-body">
+            <div id="comparisonTable"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script>
+    let allYears = [];
+    let currentYearId = null;
+    const currentYearIdFromServer = /*[[${currentYearId}]]*/ null;
+
+    async function loadYears() {
+        try {
+            const response = await fetch('/api/academic-years');
+            allYears = await response.json();
+
+            const container = document.getElementById('yearsContainer');
+            container.innerHTML = '';
+
+            if (allYears.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><h5>暂无学年数据</h5><p>请在管理后台创建学年</p></div>';
+                return;
+            }
+
+            let defaultYearId = currentYearIdFromServer;
+            if (!defaultYearId && allYears.length > 0) {
+                defaultYearId = allYears[0].id;
+            }
+
+            allYears.forEach((year, index) => {
+                const tab = document.createElement('div');
+                const isActive = year.id === defaultYearId || (!defaultYearId && index === 0);
+                tab.className = 'year-tab' + (isActive ? ' active' : '');
+                tab.onclick = () => selectYear(year.id, tab);
+                tab.innerHTML = '<h5>' + year.name + '</h5><p>' + year.startDate + ' 至 ' + year.endDate + '</p><span class="badge badge-' + year.status.toLowerCase() + '">' + getStatusText(year.status) + '</span>';
+                container.appendChild(tab);
+            });
+
+            if (defaultYearId) {
+                currentYearId = defaultYearId;
+                loadSemesterDetails(currentYearId);
+                loadComparison();
+            }
+        } catch (error) {
+            console.error('Error loading years:', error);
+        }
+    }
+
+    async function selectYear(yearId, tabElement) {
+        document.querySelectorAll('.year-tab').forEach(t => t.classList.remove('active'));
+        tabElement.classList.add('active');
+        currentYearId = yearId;
+        await loadSemesterDetails(yearId);
+    }
+
+    async function loadSemesterDetails(yearId) {
+        try {
+            const [semestersRes, eventsRes, holidaysRes] = await Promise.all([
+                fetch('/admin/semesters?yearId=' + yearId),
+                fetch('/api/events?yearId=' + yearId),
+                fetch('/api/holidays?yearId=' + yearId)
+            ]);
+
+            const semesters = await semestersRes.json();
+            const events = await eventsRes.json();
+            const holidays = await holidaysRes.json();
+
+            const confirmedEvents = events.filter(e => !e.display || e.display !== 'background');
+            const container = document.getElementById('semesterDetails');
+
+            let html = '<div class="stats-overview">';
+            html += '<div class="stat-card"><span class="stat-value">' + semesters.length + '</span><div class="stat-label">学期数</div></div>';
+            html += '<div class="stat-card"><span class="stat-value">' + semesters.reduce((sum, s) => sum + s.weekCount, 0) + '</span><div class="stat-label">授课周数</div></div>';
+            html += '<div class="stat-card"><span class="stat-value">' + confirmedEvents.length + '</span><div class="stat-label">活动数</div></div>';
+            html += '<div class="stat-card"><span class="stat-value">' + holidays.length + '</span><div class="stat-label">假期数</div></div>';
+            html += '</div>';
+
+            if (semesters.length === 0) {
+                html += '<div class="empty-state"><div class="empty-state-icon">📭</div><h5>暂无学期信息</h5><p>请在管理后台创建学期</p></div>';
+            } else {
+                html += '<div class="semester-grid">';
+                semesters.forEach(sem => {
+                    const semType = sem.term === 'FALL' ? 'fall' : 'spring';
+                    const termName = sem.term === 'FALL' ? '秋季学期' : '春季学期';
+                    const termIcon = sem.term === 'FALL' ? '🍂' : '🌸';
+                    html += '<div class="semester-card ' + semType + '" onclick="viewCalendar(\'' + sem.id + '\', \'' + sem.term + '\')">';
+                    html += '<h4>' + termIcon + ' ' + termName + '</h4>';
+                    html += '<div class="semester-info">';
+                    html += '<div class="info-row"><span class="info-label">📅 开始日期</span><span class="info-value">' + sem.startDate + '</span></div>';
+                    html += '<div class="info-row"><span class="info-label">📅 结束日期</span><span class="info-value">' + sem.endDate + '</span></div>';
+                    html += '<div class="info-row"><span class="info-label">📚 授课周数</span><span class="info-value" style="color: #667eea">' + sem.weekCount + ' 周</span></div>';
+                    html += '</div>';
+                    html += createTimeline(sem);
+                    html += '<button class="view-calendar-btn" onclick="event.stopPropagation(); viewCalendar(\'' + sem.id + '\', \'' + sem.term + '\')">📅 查看校历视图</button>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Error loading semester details:', error);
+        }
+    }
+
+    function viewCalendar(semesterId, semesterTerm) {
+        window.location.href = '/?yearId=' + currentYearId + '&semesterId=' + semesterId + '&term=' + semesterTerm;
+    }
+
+    function createTimeline(semester) {
+        const events = [];
+        const startDate = new Date(semester.startDate);
+        const endDate = new Date(semester.endDate);
+
+        let week1Start = new Date(startDate);
+        if (startDate.getDay() !== 1) {
+            week1Start = new Date(startDate);
+            week1Start.setDate(week1Start.getDate() + (8 - startDate.getDay()) % 7);
+        }
+
+        events.push({
+            date: formatDate(week1Start),
+            title: '🎉 第1周 - 开学',
+            type: 'start'
+        });
+
+        const midDate = new Date(startDate);
+        midDate.setDate(midDate.getDate() + Math.floor(semester.weekCount / 2) * 7);
+        events.push({
+            date: formatDate(midDate),
+            title: '📝 期中考试',
+            type: 'mid'
+        });
+
+        const examDate = new Date(endDate);
+        examDate.setDate(examDate.getDate() - 10);
+        events.push({
+            date: formatDate(examDate),
+            title: '📚 期末考试周',
+            type: 'exam'
+        });
+
+        events.push({
+            date: formatDate(endDate),
+            title: '🎓 学期结束',
+            type: 'end'
+        });
+
+        let html = '<div class="timeline">';
+        events.forEach(e => {
+            html += '<div class="timeline-item"><div class="timeline-date">' + e.date + '</div><div class="timeline-content">' + e.title + '</div></div>';
+        });
+        html += '</div>';
+
+        return html;
+    }
+
+    async function loadComparison() {
+        try {
+            const container = document.getElementById('comparisonTable');
+
+            if (allYears.length < 2) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><h5>数据不足</h5><p>至少需要2个学年才能进行对比</p></div>';
+                return;
+            }
+
+            const comparisonData = await Promise.all(
+                allYears.map(async year => {
+                    const [semestersRes, eventsRes, holidaysRes] = await Promise.all([
+                        fetch('/admin/semesters?yearId=' + year.id),
+                        fetch('/api/events?yearId=' + year.id),
+                        fetch('/api/holidays?yearId=' + year.id)
+                    ]);
+
+                    const semesters = await semestersRes.json();
+                    const events = await eventsRes.json();
+                    const holidays = await holidaysRes.json();
+                    const confirmedEvents = events.filter(e => !e.display || e.display !== 'background');
+
+                    return {
+                        name: year.name,
+                        semesters: semesters.length,
+                        weeks: semesters.reduce((sum, s) => sum + s.weekCount, 0),
+                        events: confirmedEvents.length,
+                        holidays: holidays.length,
+                        status: year.status
+                    };
+                })
+            );
+
+            let html = '<table class="comparison-table"><thead><tr><th>学年</th><th>学期数</th><th>总周数</th><th>活动数</th><th>假期数</th><th>状态</th></tr></thead><tbody>';
+
+            comparisonData.forEach(data => {
+                html += '<tr><td><strong>' + data.name + '</strong></td><td>' + data.semesters + '</td><td>' + data.weeks + '</td><td>' + data.events + '</td><td>' + data.holidays + '</td><td><span class="badge badge-' + data.status.toLowerCase() + '">' + getStatusText(data.status) + '</span></td></tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Error loading comparison:', error);
+        }
+    }
+
+    function getStatusText(status) {
+        const statusMap = {
+            'DRAFT': '草稿',
+            'PUBLISHED': '已发布',
+            'ARCHIVED': '已归档'
+        };
+        return statusMap[status] || status;
+    }
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadYears);
+</script>
+</body>
+</html>

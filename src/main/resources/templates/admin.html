@@ -1,0 +1,327 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校历管理后台</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/fullcalendar.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: rgba(255, 255, 255, 0.98) !important; backdrop-filter: blur(10px); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); padding: 1rem 0; }
+        .navbar-brand { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .calendar-container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); border: none; margin-bottom: 2rem; overflow: hidden; }
+        .card-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border: none; font-weight: 700; }
+        .card-body { padding: 2rem; }
+        .form-label { font-weight: 600; color: #333; margin-bottom: 0.5rem; }
+        .form-select, .form-control, textarea { border: 2px solid #e0e0e0; border-radius: 12px; padding: 0.75rem 1rem; font-size: 1rem; transition: all 0.3s ease; }
+        .form-select:focus, .form-control:focus, textarea:focus { border-color: #667eea; box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25); }
+        .btn { border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 600; transition: all 0.3s ease; border: none; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4); }
+        .btn-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(240, 147, 251, 0.4); color: white; }
+        .btn-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .btn-info:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(79, 172, 254, 0.4); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #f5365c 0%, #fb434a 100%); color: white; }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(245, 54, 92, 0.4); color: white; }
+        .btn-light { background: rgba(255, 255, 255, 0.95); color: #333; }
+        .btn-secondary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        #calendar { background: white; border-radius: 20px; padding: 1.5rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); }
+        .fc { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .fc-toolbar-title { font-size: 1.5rem !important; font-weight: 700; color: #333; }
+        .fc-button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; border: none !important; border-radius: 10px !important; padding: 0.5rem 1rem !important; font-weight: 600 !important; }
+        .fc-button:hover { transform: translateY(-1px); }
+        .fc-day-today { background-color: rgba(102, 126, 234, 0.1) !important; }
+        .fc-daygrid-day-number { font-weight: 600; }
+        .fc-event { border: none !important; border-radius: 8px !important; padding: 0.25rem 0.5rem !important; font-weight: 500; }
+        .fc-event-title { font-size: 0.85rem; }
+        .fc-bg-event { opacity: 0.3 !important; }
+        .modal-content { border-radius: 20px; border: none; box-shadow: 0 10px 60px rgba(0, 0, 0, 0.3); }
+        .modal-header { border-bottom: 2px solid #f0f0f0; padding: 1.5rem; }
+        .modal-title { font-weight: 700; color: #333; }
+        .modal-body { padding: 2rem; }
+        .modal-footer { border-top: 2px solid #f0f0f0; padding: 1.5rem; }
+        .table { margin-top: 1rem; }
+        .table thead th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-weight: 700; color: #333; }
+        .table tbody tr:hover { background-color: rgba(102, 126, 234, 0.05); }
+        .badge { padding: 0.35rem 0.65rem; font-size: 0.85rem; font-weight: 600; }
+        .badge-legal { background: #f44336; color: white; }
+        .badge-school { background: #2196f3; color: white; }
+        .badge-recurring { background: #4caf50; color: white; }
+        @media (max-width: 768px) { .control-panel { padding: 1.5rem; } .fc-toolbar { flex-direction: column !important; gap: 0.5rem; } }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <a class="navbar-brand" href="/">校历管理系统 - 管理后台</a>
+        <div>
+            <a href="/" class="btn btn-light btn-sm me-2">校历视图</a>
+            <a href="/dashboard" class="btn btn-light btn-sm me-2">学年视图</a>
+        </div>
+    </div>
+</nav>
+
+<div class="calendar-container">
+    <div class="card">
+        <div class="card-header">学年管理</div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">选择学年</label>
+                    <select id="yearSelect" class="form-select" onchange="loadSemesters(); loadHolidays();">
+                        <option th:each="y : ${years}" th:value="${y.id}" th:text="${y.name}"></option>
+                    </select>
+                </div>
+                <div class="col-md-8 d-flex align-items-end gap-2 flex-wrap">
+                    <button class="btn btn-primary btn-sm" id="btnLoadEvents">加载校历</button>
+                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#eventModal">添加活动</button>
+                    <button class="btn btn-warning btn-sm" id="btnPublish">发布校历</button>
+                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#yearModal">新建学年</button>
+                    <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#templateModal">模板管理</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">法定节假设置</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <button class="btn btn-success btn-sm me-2" id="btnGenerateHolidays">生成中国法定节假日</button>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#holidayModal">添加节假日</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr><th>节假日名称</th><th>类型</th><th>开始日期</th><th>结束日期</th><th>是否年度重复</th><th>操作</th></tr>
+                    </thead>
+                    <tbody id="holidaysTableBody">
+                        <tr><td colspan="6" class="text-center text-muted">请选择学年查看节假日</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">日历视图</div>
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">新增统一活动</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">活动名称</label><input id="eventTitle" class="form-control" placeholder="请输入活动名称"></div>
+                <div class="mb-3"><label class="form-label">活动类型</label><select id="eventType" class="form-select"><option value="SPORTS">校运会</option><option value="EXAM">考试</option><option value="CEREMONY">典礼</option><option value="OTHER">其他</option></select></div>
+                <div class="mb-3"><label class="form-label">开始日期</label><input id="eventStart" type="date" class="form-control"></div>
+                <div class="mb-3"><label class="form-label">结束日期</label><input id="eventEnd" type="date" class="form-control"></div>
+                <div class="mb-3"><label class="form-label">所属学期</label><select id="semesterSelect" class="form-select"></select></div>
+                <div class="mb-3"><label class="form-label">描述</label><textarea id="eventDesc" class="form-control" rows="3" placeholder="可选"></textarea></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary" id="btnSaveEvent">保存</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="yearModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">新建学年</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">学年名称</label><input id="yearName" class="form-control" placeholder="如：2027-2028"></div>
+                <div class="mb-3"><label class="form-label">起始年份</label><input id="startYear" type="number" class="form-control" placeholder="如：2027"></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary" id="btnCreateYear">创建</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">学年模板管理</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><h6>导出模板</h6><p class="text-muted small">将当前学年导出为模板文件</p><button class="btn btn-primary" id="btnExportTemplate">导出当前学年模板</button></div>
+                <hr>
+                <div class="mb-3"><h6>导入模板</h6><p class="text-muted small">从模板文件导入学年数据</p><div class="mb-2"><input type="file" id="templateFile" class="form-control" accept=".json"></div><div class="mb-2"><label class="form-label">年份偏移（年）</label><input type="number" id="yearOffset" class="form-control" value="1" min="0" max="10"><small class="text-muted">例如模板是2026-2027年，偏移1年则创建2027-2028年</small></div><button class="btn btn-success" id="btnImportTemplate">导入模板</button></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="holidayModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">添加节假日</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">节假日名称</label><input id="holidayName" class="form-control" placeholder="如：国庆节"></div>
+                <div class="mb-3"><label class="form-label">节假日类型</label><select id="holidayType" class="form-select"><option value="LEGAL">法定节假日</option><option value="SCHOOL">学校假期</option><option value="OTHER">其他</option></select></div>
+                <div class="mb-3"><label class="form-label">开始日期</label><input id="holidayStart" type="date" class="form-control"></div>
+                <div class="mb-3"><label class="form-label">结束日期</label><input id="holidayEnd" type="date" class="form-control"></div>
+                <div class="mb-3"><label class="form-label"><input type="checkbox" id="holidayRecurring"> 年度重复</label></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary" id="btnSaveHoliday">保存</button></div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/fullcalendar.min.js"></script>
+<script src="/js/fullcalendar-locales.min.js"></script>
+<script th:inline="javascript">
+let calendar;
+let currentYearId;
+
+function loadEvents() {
+    currentYearId = document.getElementById('yearSelect').value;
+    fetch('/api/events?yearId=' + currentYearId)
+        .then(res => res.json())
+        .then(events => { calendar.removeAllEvents(); calendar.addEventSource(events); });
+}
+
+function loadSemesters() {
+    currentYearId = document.getElementById('yearSelect').value;
+    fetch('/admin/semesters?yearId=' + currentYearId)
+        .then(res => res.json())
+        .then(semesters => {
+            const sel = document.getElementById('semesterSelect');
+            sel.innerHTML = '';
+            semesters.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.id;
+                option.textContent = s.term === 'FALL' ? '秋季学期' : '春季学期';
+                sel.appendChild(option);
+            });
+        });
+}
+
+function loadHolidays() {
+    currentYearId = document.getElementById('yearSelect').value;
+    fetch('/api/holidays/by-year/' + currentYearId)
+        .then(res => res.json())
+        .then(holidays => {
+            const tbody = document.getElementById('holidaysTableBody');
+            if (holidays.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">暂无节假日，点击"生成中国法定节假日"快速添加</td></tr>';
+                return;
+            }
+            tbody.innerHTML = holidays.map(h => '<tr><td><strong>' + h.name + '</strong></td><td><span class="badge badge-' + h.type.toLowerCase() + '">' + (h.type === 'LEGAL' ? '法定' : h.type === 'SCHOOL' ? '学校' : '其他') + '</span></td><td>' + h.startDate + '</td><td>' + h.endDate + '</td><td><span class="badge ' + (h.recurring ? 'badge-recurring' : 'badge-secondary') + '">' + (h.recurring ? '是' : '否') + '</span></td><td><button class="btn btn-danger btn-sm" onclick="deleteHoliday(' + h.id + ')">删除</button></td></tr>').join('');
+        });
+}
+
+function saveEvent() {
+    const semesterId = document.getElementById('semesterSelect').value;
+    const event = {
+        title: document.getElementById('eventTitle').value,
+        eventType: document.getElementById('eventType').value,
+        startDate: document.getElementById('eventStart').value,
+        endDate: document.getElementById('eventEnd').value,
+        description: document.getElementById('eventDesc').value,
+        status: 'CONFIRMED',
+        priority: 1
+    };
+    fetch('/admin/event?semesterId=' + semesterId, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(event) })
+        .then(res => { if (res.ok) { alert('活动添加成功'); bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide(); loadEvents(); document.getElementById('eventTitle').value = ''; document.getElementById('eventDesc').value = ''; } else { res.text().then(msg => alert('添加失败：' + msg)); } });
+}
+
+function publishYear() {
+    currentYearId = document.getElementById('yearSelect').value;
+    fetch('/admin/publish/' + currentYearId, { method: 'POST' }).then(() => alert('校历发布成功！'));
+}
+
+function createYear() {
+    const name = document.getElementById('yearName').value;
+    const startYear = parseInt(document.getElementById('startYear').value);
+    fetch('/admin/academic-year?name=' + encodeURIComponent(name) + '&startYear=' + startYear, { method: 'POST' })
+        .then(res => { if (res.ok) { alert('学年创建成功'); window.location.reload(); } });
+}
+
+function exportTemplate() {
+    currentYearId = document.getElementById('yearSelect').value;
+    window.location.href = '/api/template/export/' + currentYearId;
+}
+
+function importTemplate() {
+    const fileInput = document.getElementById('templateFile');
+    const yearOffset = parseInt(document.getElementById('yearOffset').value);
+    if (!fileInput.files[0]) { alert('请选择模板文件'); return; }
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('yearOffset', yearOffset);
+    fetch('/api/template/import', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => { if (data.success) { alert(data.message); bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide(); window.location.reload(); } else { alert(data.message); } })
+        .catch(err => alert('导入失败：' + err.message));
+}
+
+function generateChineseHolidays() {
+    currentYearId = document.getElementById('yearSelect').value;
+    const yearName = document.getElementById('yearSelect').selectedOptions[0].text;
+    const year = parseInt(yearName.split('-')[0]) + 1;
+    if (!confirm('将为 ' + year + ' 年生成以下法定节假日：元旦、春节、清明节、劳动节、端午节、中秋节、国庆节，是否继续？')) return;
+    fetch('/api/holidays/generate-chinese-holidays?yearId=' + currentYearId + '&year=' + year, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => { if (data.success) { alert(data.message); loadHolidays(); loadEvents(); } else { alert(data.message); } });
+}
+
+function saveHoliday() {
+    currentYearId = document.getElementById('yearSelect').value;
+    const holiday = { yearId: currentYearId, name: document.getElementById('holidayName').value, type: document.getElementById('holidayType').value, startDate: document.getElementById('holidayStart').value, endDate: document.getElementById('holidayEnd').value, recurring: document.getElementById('holidayRecurring').checked };
+    fetch('/api/holidays/create', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(holiday) })
+        .then(res => res.json())
+        .then(data => { if (data.success) { alert('节假日添加成功'); bootstrap.Modal.getInstance(document.getElementById('holidayModal')).hide(); document.getElementById('holidayName').value = ''; document.getElementById('holidayRecurring').checked = false; loadHolidays(); loadEvents(); } else { alert(data.message); } });
+}
+
+function deleteHoliday(id) {
+    if (!confirm('确定要删除这个节假日吗？')) return;
+    fetch('/api/holidays/delete/' + id, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => { if (data.success) { alert('删除成功'); loadHolidays(); loadEvents(); } else { alert(data.message); } });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', locale: 'zh-cn',
+        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listMonth' },
+        events: [], height: 'auto', contentHeight: 'auto'
+    });
+    calendar.render();
+    
+    const yearSelect = document.getElementById('yearSelect');
+    const currentYearIdFromServer = /*[[${currentYearId}]]*/ null;
+    
+    if (currentYearIdFromServer) {
+        yearSelect.value = currentYearIdFromServer;
+        currentYearId = currentYearIdFromServer;
+    } else if (yearSelect.options.length > 0) {
+        currentYearId = yearSelect.value;
+    }
+    
+    if (currentYearId) { loadSemesters(); loadEvents(); loadHolidays(); }
+    document.getElementById('btnLoadEvents').addEventListener('click', loadEvents);
+    document.getElementById('btnPublish').addEventListener('click', publishYear);
+    document.getElementById('btnCreateYear').addEventListener('click', createYear);
+    document.getElementById('btnSaveEvent').addEventListener('click', saveEvent);
+    document.getElementById('btnExportTemplate').addEventListener('click', exportTemplate);
+    document.getElementById('btnImportTemplate').addEventListener('click', importTemplate);
+    document.getElementById('btnGenerateHolidays').addEventListener('click', generateChineseHolidays);
+    document.getElementById('btnSaveHoliday').addEventListener('click', saveHoliday);
+});
+</script>
+</body>
+</html>
